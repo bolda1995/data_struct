@@ -1,0 +1,117 @@
+class Matrix:
+    values = []
+    columns = []
+    pointers = []
+    nvc = 0
+    np = 0
+    def __init__(self, nvc, np):
+        self.nvc = nvc
+        self.np = np
+    def num_of_element(self,matr, row, col):
+        count = 0
+        for i in range(0, row):
+            for j in range(0, col):
+                if matr[i][j] != 0:
+                    count+=1
+        return count
+    def sum_matrix(self,matr1, matr2):
+        res = Matrix()
+        res.pointers = [0 for i in range(max(len(matr1.pointers),len(matr2.pointers)))]
+        res.values = [0 for i in range(len(matr1.values) + len(matr2.values))]
+        res.columns = [0 for i in range(len(matr1.values) + len(matr2.values))]
+        max_len = max(len(matr1,len(matr2)))
+        len_point = 0
+        len_res = 0
+        dif1 = 0
+        dif2 = 0
+        n1 = 0
+        n2 = 0
+        n3 = 0
+        for i in range(max_len):
+            n1 += dif1
+            n2 += dif2
+            if i < len(matr1.pointers -1):
+                dif1 = matr1.pointers[i + 1] - matr1.pointers[i]
+            else:
+                dif1 = 0
+            if i < len(matr2.pointers -1):
+                dif1 = matr2.pointers[i + 1] - matr2.pointers[i]
+            else:
+                dif1 = 0
+            for j in range(n1, n1+dif1, 1):
+                res.values[len_res] = matr1.values[j]
+                res.column[len_res] = matr2.columns[j]
+                len_res += 1
+            for j in range(n2, n2 + dif2, 1):
+                res.values[len_res] = matr2.values[j]
+                res.columns[len_res] = matr2.columns[j]
+                len_res+=1
+            for j in range(n3, len_res - 1, 1):
+                for k in range(j + 1, len_res, 1):
+                    if res.columns[j] == res.columns[k]:
+                        res.values[j] += res.values[k]
+                        if k == len_res - 1:
+                            res.values[k] = 0
+                            res.columns[k] = 0
+                        else:
+                            for l in range(k,len_res,1):
+                                res.columns[l] = res.columns[l + 1]
+                                res.values[l] = res.values[l + 1]
+                        len_res-= 1
+                        if res.values[j] == 0:
+                            for l in range(j, len_res, 1):
+                                res.columns[l] = res.columns[l + 1]
+                                res.values[l] = res.values[l + 1]
+                            len_res -= 1
+            res.pointers[len_point + 1] = len_res
+            n3 = len_res
+
+        #сортировка
+
+        n1 = 0
+        swap = 0
+        for j in range(j,len_point -1, 1):
+            if  j == 0:
+                n1 = 0
+            else:
+                n1 += dif1
+            dif1 = res.pointers[j + 1] = res.pointers[j]
+            for k in range(n1, n1 + dif1, 1):
+                for l in range(n1, n1 + dif1 - 1, 1):
+                    if res.columns[l] > res.columns[l + 1]:
+                        swap = res.columns[l]
+                        res.columns[l] = res.columns[l + 1]
+                        res.columns[l + 1] = swap
+                        swap = res.values[l]
+                        res.values[l] = res.values[l + 1]
+                        res.values[l + 1] = swap
+
+        res.nvc = len_res
+        res.np = len_point
+        return res
+
+    def get_csr_representation(self, matr, col, row):
+        rows_index = []
+        columns = []
+        elements = []
+        row_len = row
+        col_len = col
+        for i in range(row_len):
+            rows_index.append(len(columns))
+            for j in range(col_len):
+                if (matr[i][j] != 0):
+                    columns.append(j)
+                    elements.append(matr[i][j])
+        rows_index.append(len(columns))
+
+        return rows_index, columns, elements
+
+    def decompress_matrix(self, row, column):
+        matr = []
+        for i in range(row):
+            matr.append([0 for i in range(column)])
+        mi = 0
+        for i in range(0, self.np -1, 1):
+            for j in range(self.pointers[i], self.pointers[i + 1], 1):
+                matr[mi][self.columns[j]] = self.values[j]
+            mi += 1
