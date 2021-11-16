@@ -1,117 +1,109 @@
-class Matrix:
+class RRU_matrix:
     values = []
     columns = []
-    pointers = []
-    nvc = 0
-    np = 0
-    def __init__(self, nvc, np):
-        self.nvc = nvc
-        self.np = np
-    def num_of_element(self,matr, row, col):
-        count = 0
-        for i in range(0, row):
-            for j in range(0, col):
-                if matr[i][j] != 0:
-                    count+=1
-        return count
-    def sum_matrix(self,matr1, matr2):
-        res = Matrix()
-        res.pointers = [0 for i in range(max(len(matr1.pointers),len(matr2.pointers)))]
-        res.values = [0 for i in range(len(matr1.values) + len(matr2.values))]
-        res.columns = [0 for i in range(len(matr1.values) + len(matr2.values))]
-        max_len = max(len(matr1,len(matr2)))
-        len_point = 0
-        len_res = 0
-        dif1 = 0
-        dif2 = 0
-        n1 = 0
-        n2 = 0
-        n3 = 0
-        for i in range(max_len):
-            n1 += dif1
-            n2 += dif2
-            if i < len(matr1.pointers -1):
-                dif1 = matr1.pointers[i + 1] - matr1.pointers[i]
-            else:
-                dif1 = 0
-            if i < len(matr2.pointers -1):
-                dif1 = matr2.pointers[i + 1] - matr2.pointers[i]
-            else:
-                dif1 = 0
-            for j in range(n1, n1+dif1, 1):
-                res.values[len_res] = matr1.values[j]
-                res.column[len_res] = matr2.columns[j]
-                len_res += 1
-            for j in range(n2, n2 + dif2, 1):
-                res.values[len_res] = matr2.values[j]
-                res.columns[len_res] = matr2.columns[j]
-                len_res+=1
-            for j in range(n3, len_res - 1, 1):
-                for k in range(j + 1, len_res, 1):
-                    if res.columns[j] == res.columns[k]:
-                        res.values[j] += res.values[k]
-                        if k == len_res - 1:
-                            res.values[k] = 0
-                            res.columns[k] = 0
-                        else:
-                            for l in range(k,len_res,1):
-                                res.columns[l] = res.columns[l + 1]
-                                res.values[l] = res.values[l + 1]
-                        len_res-= 1
-                        if res.values[j] == 0:
-                            for l in range(j, len_res, 1):
-                                res.columns[l] = res.columns[l + 1]
-                                res.values[l] = res.values[l + 1]
-                            len_res -= 1
-            res.pointers[len_point + 1] = len_res
-            n3 = len_res
+    pointers = [0]
+    n_rows = 0
+    m_cols = 0
+    def __init__(self, new_values, new_columns, new_pointers, new_n_rows, new_m_cols):
+        self.values = new_values
+        self.columns = new_columns
+        self.pointers = new_pointers
+        self.n_rows = new_n_rows
+        self.m_cols = new_m_cols
 
-        #сортировка
+    #транспонирование
+    def transposition(self):
+        new_values = []
+        new_columns = []
+        new_pointers = [0]
+        counter = 0
+        for i in range(len(self.pointers) - 1):
+            for j in range(len(self.values)):
+                if (self.columns[j] == i):
+                    new_values.append(self.values[j])
+                    t = 0
+                    while (self.pointers[t] <= j):
+                        t += 1
+                    new_columns.append(t - 1);
+                    counter += 1
+            new_pointers.append(counter)
+        new_rru_matrix = RRU_matrix(new_values, new_columns, new_pointers, self.m_cols, self.n_rows)
+        return new_rru_matrix
+    
+    #суммирование
+    def sum(self, other):
+        new_values = []
+        new_columns = []
+        new_pointers = [0]
+        
+        counter = 0
+        for i in range(len(self.pointers) - 1):
+            j = self.pointers[i]
+            k = other.pointers[j]
+            #слияние двух строк
+            while (j < self.pointers[i + 1] and k < other.pointers[i + 1]):
+                if (self.columns[j] < other.columns[k]):
+                    new_values.append(self.values[j])
+                    new_columns.append(self.columns[j])
+                    j += 1
+                elif (self.columns[j] == other.columns[k]):
+                    new_values.append(self.values[j] + other.values[k])
+                    new_columns.append(self.columns[j])
+                    j += 1
+                    k += 1
+                elif (self.columns[j] > other.columns[k]):
+                    new_values.append(other.values[k])
+                    new_columns.append(other.columns[k])
+                    k += 1
+                counter += 1
+            while (j < self.pointers[i + 1]):
+                new_values.append(self.values[j])
+                new_columns.append(self.columns[j])
+                j += 1
+                counter += 1
+            while (k < other.pointers[i + 1]):
+                new_values.append(other.values[k])
+                new_columns.append(other.columns[k])
+                k += 1
+                counter += 1
+            new_pointers.append(counter)
 
-        n1 = 0
-        swap = 0
-        for j in range(j,len_point -1, 1):
-            if  j == 0:
-                n1 = 0
-            else:
-                n1 += dif1
-            dif1 = res.pointers[j + 1] = res.pointers[j]
-            for k in range(n1, n1 + dif1, 1):
-                for l in range(n1, n1 + dif1 - 1, 1):
-                    if res.columns[l] > res.columns[l + 1]:
-                        swap = res.columns[l]
-                        res.columns[l] = res.columns[l + 1]
-                        res.columns[l + 1] = swap
-                        swap = res.values[l]
-                        res.values[l] = res.values[l + 1]
-                        res.values[l + 1] = swap
-
-        res.nvc = len_res
-        res.np = len_point
-        return res
-
-    def get_csr_representation(self, matr, col, row):
-        rows_index = []
-        columns = []
-        elements = []
-        row_len = row
-        col_len = col
-        for i in range(row_len):
-            rows_index.append(len(columns))
-            for j in range(col_len):
-                if (matr[i][j] != 0):
-                    columns.append(j)
-                    elements.append(matr[i][j])
-        rows_index.append(len(columns))
-
-        return rows_index, columns, elements
-
-    def decompress_matrix(self, row, column):
-        matr = []
-        for i in range(row):
-            matr.append([0 for i in range(column)])
-        mi = 0
-        for i in range(0, self.np -1, 1):
-            for j in range(self.pointers[i], self.pointers[i + 1], 1):
-                matr[mi][self.columns[j]] = self.values[j]
-            mi += 1
+        new_rru_matrix = RRU_matrix(new_values, new_columns, new_pointers, self.n_rows, self.m_cols)
+        return new_rru_matrix
+    
+    
+    #умножение
+    def mul(self, other):
+        new_values = []
+        new_columns = []
+        new_pointers = [0]
+        new_n_rows = self.n_rows
+        new_m_cols = other.m_cols
+        #here should be a hell of a lot of checks
+        other_t = other.transposition()
+        
+        counter = 0
+        for i in range(len(self.pointers) - 1):
+            for j in range(len(other_t.pointers) - 1):
+                t_1 = self.pointers[i]
+                t_2 = other_t.pointers[j]
+                cap_t_1 = self.pointers[i + 1]
+                cap_t_2 = other_t.pointers[j + 1]
+                summary_elem = 0
+                while (t_1 < cap_t_1 and t_2 < cap_t_2):
+                    if (self.columns[t_1] < other_t.columns[t_2]):
+                        t_1 += 1
+                    elif (self.columns[t_1] > other_t.columns[t_2]):
+                        t_2 += 1
+                    elif (self.columns[t_1] == other_t.columns[t_2]):
+                        summary_elem += self.values[t_1]*other_t.values[t_2]
+                        t_1 += 1
+                        t_2 += 1
+                if (summary_elem != 0):
+                    new_values.append(summary_elem)
+                    new_columns.append(j)
+                    counter += 1
+            new_pointers.append(counter)
+        
+        new_rru_matrix = RRU_matrix(new_values, new_columns, new_pointers, new_n_rows, new_m_cols)
+        return new_rru_matrix
